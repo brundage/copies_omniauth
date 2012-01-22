@@ -1,0 +1,24 @@
+:dummy:
+  provider: "dummy"
+  uid: 1
+  info:
+    name: "A Dummy Profile"
+  credentials:
+    token: "blue"
+:error:
+  provider: "error"
+  uid: 1
+  credentials:
+    token: "blue"
+
+:irregular:
+  provider: "irregular"
+  uid: 1
+  info:
+    name: "An Irregular Profile"
+  credentials:
+    token: "blue"
+
+:broken:
+  provider: "broken"
+  uid: 1

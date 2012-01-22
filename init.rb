@@ -1,0 +1,1 @@
+require 'copies_omniauth'
