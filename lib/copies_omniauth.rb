@@ -23,9 +23,9 @@ module CopiesOmniauth
 
     def copies_omniauth(attributes={},options={})
       opts = self.class_variable_set( :@@copies_omniauth_options,
-                                      { :overwrite => true,
+                                      { :overwrite    => true,
                                         :token_column => :token,
-                                        :uid_column => :uid
+                                        :uid_column   => :uid
                                       })
       opts.merge!(options)
 
@@ -39,11 +39,15 @@ module CopiesOmniauth
                              })
       attrs.merge!(attributes)
 
+      [ opts[:token_column], opts[:uid_column] ].each do |col|
+        attrs.delete(col) unless self.instance_methods.include?(col.to_sym)
+      end
 
       include CopiesOmniauth::InstanceMethods
     end
 
   end
+
 
   module InstanceMethods
 
@@ -54,7 +58,8 @@ module CopiesOmniauth
         raise ClassNameMismatch, "OmniAuth does not represent a #{opts[:provider_name]} profile."
       end
 
-      if send(opts[:uid_column]).present? &&
+      if respond_to?(opts[:uid_column]) &&
+           send(opts[:uid_column]).present? &&
            omniauth["uid"] != send(opts[:uid_column])
         raise UidMismatch, "OmniAuth does not apply to this #{opts[:provider_name]} profile."
       end
@@ -68,9 +73,11 @@ module CopiesOmniauth
         else
           raise ArgumentError, "Don't know what to do with a #{omniauth_key.class}"
         end
-        self.send("#{attr}=",value)
+        if opts[:overwrite] || send(attr).nil?
+          self.send("#{attr}=",value)
+        end
       end
-
+      self
     end
     alias_method :update_from_omniauth, :copy_from_omniauth
 

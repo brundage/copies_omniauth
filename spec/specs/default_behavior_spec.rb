@@ -11,6 +11,15 @@ describe CopiesOmniauth, 'default behavior' do
   end
 
 
+  it "does not try to copy the uid if the class doesn't have one" do
+    profile = NodefaultsProfile.new
+    profile.should_not respond_to(:uid)
+    expect {
+      profile.copy_from_omniauth OMNIAUTHS[:nodefaults]
+    }.not_to raise_error
+  end
+
+
   it "copies the token by default" do
     profile = DummyProfile.new
     profile.token.should be_nil
@@ -20,12 +29,34 @@ describe CopiesOmniauth, 'default behavior' do
   end
 
 
+  it "does not try to copy the token if the class doesn't have one" do
+    profile = NodefaultsProfile.new
+    profile.should_not respond_to(:token)
+    expect {
+      profile.copy_from_omniauth OMNIAUTHS[:nodefaults]
+    }.not_to raise_error
+  end
+
+
   it "copies omniauth values requested" do
     profile = DummyProfile.new
     profile.name.should be_nil
     profile.copy_from_omniauth OMNIAUTHS[:dummy]
     profile.name.should_not be_nil
     profile.name.should eq OMNIAUTHS[:dummy]["info"]["name"]
+  end
+
+
+  it "doesn't overwrite values when configured not to" do
+    name = "Blark"
+    name.should_not eq OMNIAUTHS[:dummy]["info"]["name"]
+    class DummyProfile
+      copies_omniauth({:name => %w(info name)},{:overwrite => false})
+    end
+    profile = DummyProfile.new
+    profile.name = name
+    profile.copy_from_omniauth OMNIAUTHS[:dummy]
+    profile.name.should eq name
   end
 
 end

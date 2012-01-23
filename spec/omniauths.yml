@@ -5,6 +5,7 @@
     name: "A Dummy Profile"
   credentials:
     token: "blue"
+
 :error:
   provider: "error"
   uid: 1
@@ -19,6 +20,8 @@
   credentials:
     token: "blue"
 
-:broken:
-  provider: "broken"
+:nodefaults:
+  provider: "nodefaults"
   uid: 1
+  credentials:
+    token: "blue"
