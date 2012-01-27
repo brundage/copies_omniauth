@@ -5,6 +5,8 @@ module CopiesOmniauth
   COPIES_OMNIAUTH_TOKEN_KEY = ["credentials","token"]
   COPIES_OMNIAUTH_UID_KEY = "uid"
 
+  HAS_RAILS = defined?(Rails) && Rails::VERSION::MAJOR >= 3
+
   class ClassNameMismatch < RuntimeError; end
   class UidMismatch < RuntimeError; end
 
@@ -14,7 +16,7 @@ module CopiesOmniauth
   end
 
 
-  if defined?(Rails) && Rails::VERSION::MAJOR >= 3
+  if HAS_RAILS
     require 'copies_omniauth/railtie'
   end
 
@@ -44,7 +46,11 @@ module CopiesOmniauth
       end
 
       [ opts[:token_attribute], opts[:uid_attribute] ].each do |attr|
-        attrs.delete(attr) unless self.instance_methods.include?("#{attr}=".to_sym)
+        if HAS_RAILS && self < ActiveRecord::Base
+          attrs.delete(attr) unless self.attribute_method?(attr)
+        else
+          attrs.delete(attr) unless self.instance_methods.include?("#{attr}=".to_sym)
+        end
       end
 
       include CopiesOmniauth::InstanceMethods
@@ -76,8 +82,10 @@ module CopiesOmniauth
         else
           raise ArgumentError, "Don't know what to do with a #{omniauth_key.class}"
         end
-        unless methods.include?("#{attr}=".to_sym)
-          raise ArgumentError, "Can't copy #{attr}"
+        if HAS_RAILS && is_a?(ActiveRecord::Base)
+          raise ArgumentError, "Can't copy #{attr}" unless attributes.include?(attr)
+        else
+          raise ArgumentError, "Can't copy #{attr}" unless methods.include?("#{attr}=".to_sym)
         end
         if opts[:overwrite] || send(attr).nil?
           self.send("#{attr}=",value)
@@ -87,6 +95,18 @@ module CopiesOmniauth
     end
     alias_method :update_from_omniauth, :copy_from_omniauth
 
+  end
+
+
+
+  def object_has_attribute(object,attribute)
+    if object.is_a?(ActiveRecord::Base)
+      object.attributes.include?(attribute.to_s)
+    elsif object.class == Class
+      object.instance_methods.include?("#{attribute}=".to_sym)
+    else
+      object.respond_to?("#{attribute}=")
+    end
   end
 
 end
