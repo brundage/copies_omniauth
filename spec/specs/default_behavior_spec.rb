@@ -2,6 +2,12 @@ require 'spec_helper'
 
 describe CopiesOmniauth, 'default behavior' do
 
+  it "returns self" do
+    profile = DummyProfile.new
+    profile.copy_from_omniauth(OMNIAUTHS[:dummy]).should === profile
+  end
+
+
   it "copies the uid by default" do
     profile = DummyProfile.new
     profile.uid.should be_nil

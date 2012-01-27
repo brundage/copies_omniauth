@@ -1,9 +1,7 @@
 PATH
   remote: .
   specs:
-    copies_omniauth (0.0.3)
-      activerecord (>= 3.0.0)
-      activesupport (>= 3.0.0)
+    copies_omniauth (0.0.5)
 
 GEM
   remote: http://rubygems.org/

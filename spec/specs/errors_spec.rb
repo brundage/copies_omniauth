@@ -6,7 +6,7 @@ describe CopiesOmniauth, 'exceptions' do
     profile = DummyProfile.new
     expect {
       profile.copy_from_omniauth(OMNIAUTHS[:irregular])
-    }.to raise_error(CopiesOmniauth::ClassNameMismatch)
+    }.to raise_error(CopiesOmniauth::ProviderNameMismatch)
   end
 
 
@@ -20,10 +20,22 @@ describe CopiesOmniauth, 'exceptions' do
   end
 
 
-  it "raises an error when given bad attributes" do
-    profile = ErrorProfile.new
+  it "raises an error when the class doesn't have a setter for an attribute" do
     expect {
-      profile.copy_from_omniauth(OMNIAUTHS[:error])
+      class ErrorProfile
+        include CopiesOmniauth
+        copies_omniauth :attributes => { :no_setter_for_this => :p }
+      end
+    }.to raise_error(ArgumentError)
+  end
+
+
+  it "raises an error when given bad attribute traversal" do
+    expect {
+      class ErrorProfile
+        include CopiesOmniauth
+        copies_omniauth :attributes => { :bad_girl => {} }
+      end
     }.to raise_error(ArgumentError)
   end
 

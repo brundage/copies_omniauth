@@ -2,13 +2,16 @@ require 'copies_omniauth/version'
 
 module CopiesOmniauth
 
-  COPIES_OMNIAUTH_TOKEN_KEY = ["credentials","token"]
-  COPIES_OMNIAUTH_UID_KEY = "uid"
+  TOKEN_KEY = ["credentials","token"]
+  UID_KEY = "uid"
 
-  HAS_RAILS = defined?(Rails) && Rails::VERSION::MAJOR >= 3
-
-  class ClassNameMismatch < RuntimeError; end
+  class ProviderNameMismatch < RuntimeError; end
   class UidMismatch < RuntimeError; end
+
+
+  if defined?(Rails) && Rails::VERSION::MAJOR >= 3
+    require 'copies_omniauth/railtie'
+  end
 
 
   def self.included(parent)
@@ -16,44 +19,72 @@ module CopiesOmniauth
   end
 
 
-  if HAS_RAILS
-    require 'copies_omniauth/railtie'
-  end
-
-
   module ClassMethods
 
     def copies_omniauth(args={})
-      opts = self.class_variable_set( :@@copies_omniauth_options,
-                                      { :overwrite    => true,
-                                        :token_attribute => :token,
-                                        :uid_attribute   => :uid
-                                      })
+      options = self.class_variable_set( :@@copies_omniauth_options,
+                                           { :overwrite       => true,
+                                             :token_attribute => :token,
+                                             :uid_attribute   => :uid
+                                           })
       unless args[:options].nil?
-        opts.merge!(args[:options])
+        options.merge!(args[:options])
       end
 
-      if opts[:provider_name].nil?
-        opts[:provider_name] = self.name.sub("Profile","").downcase
+      if options[:provider_name].nil?
+        options[:provider_name] = self.name.sub("Profile","").downcase
       end
 
-      attrs = self.class_variable_set( :@@copies_omniauth_attributes,
-                             { opts[:token_attribute] => COPIES_OMNIAUTH_TOKEN_KEY,
-                               opts[:uid_attribute]   => COPIES_OMNIAUTH_UID_KEY
-                             })
+      attributes = self.class_variable_set( :@@copies_omniauth_attributes,
+                                       { options[:token_attribute] => TOKEN_KEY,
+                                         options[:uid_attribute]   => UID_KEY
+                                       })
       unless args[:attributes].nil?
-        attrs.merge!(args[:attributes])
+        attributes.merge!(args[:attributes])
       end
 
-      [ opts[:token_attribute], opts[:uid_attribute] ].each do |attr|
-        if HAS_RAILS && self < ActiveRecord::Base
-          attrs.delete(attr) unless self.attribute_method?(attr)
+      [ options[:token_attribute], options[:uid_attribute] ].each do |attr|
+        attributes.delete(attr) unless instance_has_setter_for?(attr)
+      end
+
+      attributes.each do |attr,omniauth_key|
+        raise ArgumentError, "Do not know how to set #{attr}" unless instance_has_setter_for?(attr)
+
+        case omniauth_key
+        when Array, String, Symbol
         else
-          attrs.delete(attr) unless self.instance_methods.include?("#{attr}=".to_sym)
+          raise ArgumentError, "Don't know how to traverse OmniAuth with #{omniauth_key}"
         end
       end
 
       include CopiesOmniauth::InstanceMethods
+    end
+
+
+    def create_from_omniauth(omniauth)
+      new_from_omniauth(omniauth).save
+    end
+
+
+    def new_from_omniauth(omniauth)
+      new().copy_from_omniauth(omniauth)
+    end
+
+
+  private
+
+    def attribute_setter_for?(attr)
+      respond_to?(:attribute_method?) && attribute_method?(attr)
+    end
+
+
+    def instance_has_setter_for?(attr)
+      attribute_setter_for?(attr) || method_setter_for?(attr)
+    end
+
+
+    def method_setter_for?(attr)
+      instance_methods.include?("#{attr}=".to_sym)
     end
 
   end
@@ -62,51 +93,64 @@ module CopiesOmniauth
   module InstanceMethods
 
     def copy_from_omniauth(omniauth)
-      opts = self.class.class_variable_get(:@@copies_omniauth_options)
 
-      if omniauth["provider"] != opts[:provider_name].to_s
-        raise ClassNameMismatch, "OmniAuth does not represent a #{opts[:provider_name]} profile."
-      end
+      validate_provider omniauth["provider"]
+      validate_uid      omniauth["uid"]
 
-      if respond_to?(opts[:uid_attribute]) &&
-           send(opts[:uid_attribute]).present? &&
-           omniauth["uid"] != send(opts[:uid_attribute])
-        raise UidMismatch, "OmniAuth does not apply to this #{opts[:provider_name]} profile."
-      end
-      self.class.class_variable_get(:@@copies_omniauth_attributes).each do |attr,omniauth_key|
+      copies_omniauth_attributes.each do |attr,omniauth_key|
+
         case omniauth_key
         when Array
-        value = omniauth_key.inject(omniauth) { |hash,key| hash.try(:[], key) }
+        value = omniauth_key.inject(omniauth) do |hash,key|
+                                                hash[key] unless hash.nil?
+                                              end
         when String
           value = omniauth[omniauth_key]
-        else
-          raise ArgumentError, "Don't know what to do with a #{omniauth_key.class}"
+
+        when Symbol
+          value = omniauth[omniauth_key.to_s]
+
         end
-        if HAS_RAILS && is_a?(ActiveRecord::Base)
-          raise ArgumentError, "Can't copy #{attr}" unless attributes.include?(attr)
-        else
-          raise ArgumentError, "Can't copy #{attr}" unless methods.include?("#{attr}=".to_sym)
-        end
-        if opts[:overwrite] || send(attr).nil?
+
+        if copies_omniauth_options[:overwrite] || send(attr).nil?
           self.send("#{attr}=",value)
         end
       end
       self
     end
-    alias_method :update_from_omniauth, :copy_from_omniauth
 
-  end
+  private
 
-
-
-  def object_has_attribute(object,attribute)
-    if object.is_a?(ActiveRecord::Base)
-      object.attributes.include?(attribute.to_s)
-    elsif object.class == Class
-      object.instance_methods.include?("#{attribute}=".to_sym)
-    else
-      object.respond_to?("#{attribute}=")
+    def copies_omniauth_attributes
+     self.class.class_variable_get(:@@copies_omniauth_attributes)
     end
+
+
+    def copies_omniauth_options
+     self.class.class_variable_get(:@@copies_omniauth_options)
+    end
+
+
+    def omniauth_uid
+      if respond_to?(copies_omniauth_options[:uid_attribute])
+        send(copies_omniauth_options[:uid_attribute])
+      end
+    end
+
+
+    def validate_provider(provider)
+      unless provider == copies_omniauth_options[:provider_name].to_s
+        raise ProviderNameMismatch, "OmniAuth (#{provider}) does not represent a #{copies_omniauth_options[:provider_name]} profile."
+      end
+    end
+
+
+    def validate_uid(uid)
+      if  ! omniauth_uid.nil? && uid != omniauth_uid
+        raise UidMismatch, "OmniAuth (#{uid}) does not apply to this #{copies_omniauth_options[:provider_name]} profile (#{omniauth_uid})."
+      end
+    end
+
   end
 
 end
