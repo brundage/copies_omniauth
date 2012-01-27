@@ -4,9 +4,9 @@ class NonstandardInfo
   attr_accessor :provider_uid
   attr_accessor :name
 
-  copies_omniauth( { :name => %w(info name) },
-                   { :provider_name => :irregular,
-                     :token_column => :ident,
-                     :uid_column => :provider_uid
-                   })
+  copies_omniauth( :attributes => { :name => %w(info name) },
+                   :options => { :provider_name => :irregular,
+                                 :token_attribute => :ident,
+                                 :uid_attribute => :provider_uid
+                               })
 end

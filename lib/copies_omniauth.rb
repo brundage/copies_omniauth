@@ -21,26 +21,30 @@ module CopiesOmniauth
 
   module ClassMethods
 
-    def copies_omniauth(attributes={},options={})
+    def copies_omniauth(args={})
       opts = self.class_variable_set( :@@copies_omniauth_options,
                                       { :overwrite    => true,
-                                        :token_column => :token,
-                                        :uid_column   => :uid
+                                        :token_attribute => :token,
+                                        :uid_attribute   => :uid
                                       })
-      opts.merge!(options)
+      unless args[:options].nil?
+        opts.merge!(args[:options])
+      end
 
-      unless options[:provider_name].present?
+      if opts[:provider_name].nil?
         opts[:provider_name] = self.name.sub("Profile","").downcase
       end
 
       attrs = self.class_variable_set( :@@copies_omniauth_attributes,
-                             { opts[:token_column] => COPIES_OMNIAUTH_TOKEN_KEY,
-                               opts[:uid_column]   => COPIES_OMNIAUTH_UID_KEY
+                             { opts[:token_attribute] => COPIES_OMNIAUTH_TOKEN_KEY,
+                               opts[:uid_attribute]   => COPIES_OMNIAUTH_UID_KEY
                              })
-      attrs.merge!(attributes)
+      unless args[:attributes].nil?
+        attrs.merge!(args[:attributes])
+      end
 
-      [ opts[:token_column], opts[:uid_column] ].each do |col|
-        attrs.delete(col) unless self.instance_methods.include?(col.to_sym)
+      [ opts[:token_attribute], opts[:uid_attribute] ].each do |attr|
+        attrs.delete(attr) unless self.instance_methods.include?("#{attr}=".to_sym)
       end
 
       include CopiesOmniauth::InstanceMethods
@@ -58,12 +62,11 @@ module CopiesOmniauth
         raise ClassNameMismatch, "OmniAuth does not represent a #{opts[:provider_name]} profile."
       end
 
-      if respond_to?(opts[:uid_column]) &&
-           send(opts[:uid_column]).present? &&
-           omniauth["uid"] != send(opts[:uid_column])
+      if respond_to?(opts[:uid_attribute]) &&
+           send(opts[:uid_attribute]).present? &&
+           omniauth["uid"] != send(opts[:uid_attribute])
         raise UidMismatch, "OmniAuth does not apply to this #{opts[:provider_name]} profile."
       end
-
       self.class.class_variable_get(:@@copies_omniauth_attributes).each do |attr,omniauth_key|
         case omniauth_key
         when Array
@@ -72,6 +75,9 @@ module CopiesOmniauth
           value = omniauth[omniauth_key]
         else
           raise ArgumentError, "Don't know what to do with a #{omniauth_key.class}"
+        end
+        unless methods.include?("#{attr}=".to_sym)
+          raise ArgumentError, "Can't copy #{attr}"
         end
         if opts[:overwrite] || send(attr).nil?
           self.send("#{attr}=",value)

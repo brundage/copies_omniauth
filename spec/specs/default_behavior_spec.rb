@@ -51,7 +51,8 @@ describe CopiesOmniauth, 'default behavior' do
     name = "Blark"
     name.should_not eq OMNIAUTHS[:dummy]["info"]["name"]
     class DummyProfile
-      copies_omniauth({:name => %w(info name)},{:overwrite => false})
+      copies_omniauth(:attributes => {:name => %w(info name)},
+                      :options => {:overwrite => false})
     end
     profile = DummyProfile.new
     profile.name = name
