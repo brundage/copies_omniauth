@@ -28,11 +28,11 @@ The `copies_omniauth` method takes a hash with two keys `:options` and `:attribu
  * `:overwrite` Always overwrite information (default: *true*)
  * `:token_attribute` The attribute on the class used to store OmniAuth's token (default: *:token*)
  * `:uid_attribute` The attribute on an instance used to store OmniAuth's uid (default: *:uid*)
- * `:provider_name` `CopiesOmniauth` will guess the expected OmniAuth provider from the class name by chopping "Provider" off the end of the name.  To override this behavior, set the `:provider_name` option.
+ * `:provider_name` CopiesOmniauth will guess the expected OmniAuth provider from the class name by chopping "Provider" off the end of the name.  To override this behavior, set the `:provider_name` option.
 
 ### Attributes ###
 
-The `:attributes` parameter tells `CopiesOmniauth` which attributes to set on an instance and how to find their values in the OmniAuth hash.  Keys of the parameter represent instance attributes and their values represent a path in the OmniAuth hash.  Given the following OmniAuth hash:
+The `:attributes` parameter tells CopiesOmniauth which attributes to set on an instance and how to find their values in the OmniAuth hash.  Keys of the parameter represent instance attributes and their values represent a path in the OmniAuth hash.  Given the following OmniAuth hash:
 
     { "provider" => "twitter",
       "uid"      => "10223402",
