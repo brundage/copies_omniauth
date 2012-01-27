@@ -21,14 +21,14 @@ A small gem for copying OmniAuth information into models
 
 ## Arguments ##
 
-The `copies_omniauth' method takes a hash with two keys `:options` and `:attributes`
+The `copies_omniauth` method takes a hash with two keys `:options` and `:attributes`
 
 ### Options ###
 
- * **`:overwrite`** Always overwrite information (default: `true`)
- * **`:token\_attribute`** The attribute on the class used to store OmniAuth's token (default: `:token`)
- * **`:uid\_attribute`** The attribute on an instance used to store OmniAuth's uid (default: `:uid`)
- * **`:provider\_name`** `CopiesOmniauth` will guess the expected OmniAuth provider from the class name by chopping "Provider" off the end of the name.  To override this behavior, set the `:provider\_name` option.
+ * `:overwrite` Always overwrite information (default: *true*)
+ * `:token_attribute` The attribute on the class used to store OmniAuth's token (default: *:token*)
+ * `:uid_attribute` The attribute on an instance used to store OmniAuth's uid (default: *:uid*)
+ * `:provider_name` `CopiesOmniauth` will guess the expected OmniAuth provider from the class name by chopping "Provider" off the end of the name.  To override this behavior, set the `:provider_name` option.
 
 ### Attributes ###
 
@@ -56,18 +56,18 @@ To copy the "name" attribute into your model's "real_name" attribute:
 
     copies_omniauth :attributes => { :real_name => ["info", "name"] }
 
-This traverses the OmniAuth hash, sending _info_, then _name_ and stores the value in the model's `real\_name` attribute
+This traverses the OmniAuth hash, sending _info_, then _name_ and stores the value in the model's `real_name` attribute
 
 # Methods #
 
 ## Class Methods ##
 
-`copies\_omniauth` Configuration macro
+`copies_omniauth` Configuration macro
 
-`new\_from\_omniauth(omniauth\_hash)` Calls `new`, then `copy\_from\_omniauth(omniauth\_hash)`
+`new_from_omniauth(omniauth_hash)` Calls `new`, then `copy_from_omniauth(omniauth_hash)`
 
-`create\_from\_omniauth(omniauth\_hash)` Calls `new\_from\_omniauth(omniauth\_hash)` then `save` -- useful for `ActiveRecord` models
+`create_from_omniauth(omniauth_hash)` Calls `new_from_omniauth(omniauth_hash)` then `save` -- useful for `ActiveRecord` models
 
 ## Instance Methods ##
 
-`copy\_from\_omniauth(omniauth\_hash)` Copies values from `omniauth\_hash` into the instance
+`copy_from_omniauth(omniauth_hash)` Copies values from `omniauth_hash` into the instance
