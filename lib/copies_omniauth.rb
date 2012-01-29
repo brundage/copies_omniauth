@@ -2,6 +2,7 @@ require 'copies_omniauth/version'
 
 module CopiesOmniauth
 
+  SECRET_KEY = ["credentials","secret"]
   TOKEN_KEY = ["credentials","token"]
   UID_KEY = "uid"
 
@@ -23,9 +24,10 @@ module CopiesOmniauth
 
     def copies_omniauth(args={})
       options = self.class_variable_set( :@@copies_omniauth_options,
-                                           { :overwrite       => true,
-                                             :token_attribute => :token,
-                                             :uid_attribute   => :uid
+                                           { :overwrite        => true,
+                                             :secret_attribute => :secret,
+                                             :token_attribute  => :token,
+                                             :uid_attribute    => :uid
                                            })
       unless args[:options].nil?
         options.merge!(args[:options])
@@ -36,14 +38,17 @@ module CopiesOmniauth
       end
 
       attributes = self.class_variable_set( :@@copies_omniauth_attributes,
-                                       { options[:token_attribute] => TOKEN_KEY,
+                                       { options[:secret_attribute] => SECRET_KEY,
+                                         options[:token_attribute] => TOKEN_KEY,
                                          options[:uid_attribute]   => UID_KEY
                                        })
       unless args[:attributes].nil?
         attributes.merge!(args[:attributes])
       end
 
-      [ options[:token_attribute], options[:uid_attribute] ].each do |attr|
+      [ options[:secret_attribute],
+        options[:token_attribute],
+        options[:uid_attribute] ].each do |attr|
         attributes.delete(attr) unless instance_has_setter_for?(attr)
       end
 
@@ -146,7 +151,7 @@ module CopiesOmniauth
 
 
     def validate_uid(uid)
-      if  ! omniauth_uid.nil? && uid != omniauth_uid
+      if ! omniauth_uid.nil? && uid != omniauth_uid
         raise UidMismatch, "OmniAuth (#{uid}) does not apply to this #{copies_omniauth_options[:provider_name]} profile (#{omniauth_uid})."
       end
     end
