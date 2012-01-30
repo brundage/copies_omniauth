@@ -25,16 +25,14 @@ module CopiesOmniauth
     def copies_omniauth(args={})
       options = self.class_variable_set( :@@copies_omniauth_options,
                                            { :overwrite        => true,
+                                             :provider_name => self.name.sub("Profile","").downcase,
                                              :secret_attribute => :secret,
+                                             :skip_provider_check => false,
                                              :token_attribute  => :token,
                                              :uid_attribute    => :uid
                                            })
       unless args[:options].nil?
         options.merge!(args[:options])
-      end
-
-      if options[:provider_name].nil?
-        options[:provider_name] = self.name.sub("Profile","").downcase
       end
 
       attributes = self.class_variable_set( :@@copies_omniauth_attributes,
@@ -144,6 +142,7 @@ module CopiesOmniauth
 
 
     def validate_provider(provider)
+      return if copies_omniauth_options[:skip_provider_check]
       unless provider == copies_omniauth_options[:provider_name].to_s
         raise ProviderNameMismatch, "OmniAuth (#{provider}) does not represent a #{copies_omniauth_options[:provider_name]} profile."
       end

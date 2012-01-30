@@ -27,6 +27,7 @@ The `copies_omniauth` method takes a hash with two keys `:options` and `:attribu
 
  * `:overwrite` Always overwrite information (default: *true*)
  * `:secret_attribute` The attribute on the class used to store OmniAuth's secret (default: *:secret*)
+ * `:skip_provider_check` Do not verify the OmniAuth provider matches the model (default: *false*)
  * `:token_attribute` The attribute on the class used to store OmniAuth's token (default: *:token*)
  * `:uid_attribute` The attribute on an instance used to store OmniAuth's uid (default: *:uid*)
  * `:provider_name` CopiesOmniauth will guess the expected OmniAuth provider from the class name by chopping "Provider" off the end of the name.  To override this behavior, set the `:provider_name` option.
