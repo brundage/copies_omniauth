@@ -1,4 +1,5 @@
 ![OmniAuth Image](http://blog.deanbrundage.com/wp-content/uploads/2012/01/copies_omniauth.png)
+
 A small gem for copying [OmniAuth](https://github.com/intridea/omniauth "OmniAuth") information into models
 
 # Usage #
