@@ -1,4 +1,4 @@
-A small gem for copying OmniAuth information into models
+A small gem for copying [OmniAuth](https://github.com/intridea/omniauth OmniAuth) information into models
 
 # Usage #
 
