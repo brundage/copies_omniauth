@@ -43,7 +43,8 @@ The `:attributes` parameter tells CopiesOmniauth which attributes to set on an i
     { "provider" => "twitter",
       "uid"      => "10223402",
       "info"     => { "name" => "Dean Brundage",
-                      "email" => "dean@deanbrundage.com"
+                      "email" => "dean@deanbrundage.com",
+                      "nickname" => "brundage",
                       "urls" => [ "blog" => "http://blog.deanbrundage.com" ]
                       ....
                     }
