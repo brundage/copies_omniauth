@@ -5,6 +5,8 @@ A small gem for copying [OmniAuth](https://github.com/intridea/omniauth "OmniAut
 [![Build Status](https://secure.travis-ci.org/brundage/copies_omniauth.png)](http://travis-ci.org/brundage/copies_omniauth)
 [![Dependency Status](https://gemnasium.com/brundage/copies_omniauth.png)](https://gemnasium.com/brundage/copies_omniauth)
 [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/brundage/copies_omniauth)
+[![Buggerall](https://buggerall.herokuapp.com/bug/copies_omniauth.png)](https://github.com/brundage/buggerall)
+
 
 
 # Usage #

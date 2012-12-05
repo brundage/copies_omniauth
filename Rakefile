@@ -5,6 +5,6 @@ require 'rspec/core/rake_task'
 task :default => :spec
 
 RSpec::Core::RakeTask.new(:spec) do |t|
-  t.pattern = "./spec/specs/*_spec.rb"
+  t.pattern = "./spec/cases/**/*_spec.rb"
 end
 
